@@ -3,6 +3,20 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+import { initializeDatabase, getDb } from './repositories/database'
+import { ClassroomRepository } from './repositories/ClassroomRepository'
+import { StudentRepository } from './repositories/StudentRepository'
+import { ClassroomService } from './services/ClassroomService'
+import { StudentService } from './services/StudentService'
+import { registerClassroomHandlers } from './ipc-handlers/classroomHandler'
+import { registerStudentHandlers } from './ipc-handlers/studentHandler'
+
+// Global instances for repositories and services
+let classroomRepository: ClassroomRepository;
+let studentRepository: StudentRepository;
+let classroomService: ClassroomService;
+let studentService: StudentService;
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -39,6 +53,21 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Initialize the database and get the instance
+  const dbInstance = initializeDatabase();
+
+  // Instantiate Repositories
+  classroomRepository = new ClassroomRepository(dbInstance);
+  studentRepository = new StudentRepository(dbInstance);
+
+  // Instantiate Services with their repository dependencies
+  classroomService = new ClassroomService(classroomRepository, studentRepository);
+  studentService = new StudentService(studentRepository);
+
+  // Register IPC handlers with their service dependencies
+  registerClassroomHandlers(classroomService);
+  registerStudentHandlers(studentService);
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -48,9 +77,6 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 

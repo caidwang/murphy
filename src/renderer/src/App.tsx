@@ -1,35 +1,36 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useState } from 'react';
+import ClassManagementPage from './pages/ClassManagementPage';
+import ClassDetailPage from './pages/ClassDetailPage';
+
+export type Page = 'class-management' | 'class-detail';
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [currentPage, setCurrentPage] = useState<Page>('class-management');
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+
+  const navigateToDetail = (classId: number) => {
+    setSelectedClassId(classId);
+    setCurrentPage('class-detail');
+  };
+
+  const navigateToManagement = () => {
+    setSelectedClassId(null);
+    setCurrentPage('class-management');
+  };
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
-  )
+    <div className="w-full h-screen text-[var(--text-primary)]" style={{ background: 'var(--bg-primary)'}}>
+      {currentPage === 'class-management' && (
+        <ClassManagementPage onNavigateToDetail={navigateToDetail} />
+      )}
+      {currentPage === 'class-detail' && selectedClassId && (
+        <ClassDetailPage
+          classId={selectedClassId}
+          onNavigateBack={navigateToManagement}
+        />
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

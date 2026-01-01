@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑班级</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * { font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    </style>
+</head>
+<body style="background: var(--bg-primary);">
+    <div class="w-full h-screen flex flex-col" style="background: var(--bg-primary);">
+        <!-- 顶部导航栏 -->
+        <header class="px-6 py-4 flex items-center justify-between" style="background: var(--bg-white); border-bottom: 1px solid var(--border-color);">
+            <div class="flex items-center space-x-4">
+                <button onclick="goBack()" class="transition" style="color: var(--text-secondary);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="notion-title" id="pageTitle">创建班级</h1>
+            </div>
+            <button onclick="saveClass()" class="btn-primary">
+                保存
+            </button>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="flex-1 overflow-y-auto p-8" style="background: var(--bg-primary);">
+            <div class="max-w-4xl mx-auto">
+                <div class="card-shadow p-8">
+                    <!-- 班级基本信息 -->
+                    <h2 class="notion-subtitle mb-6">班级信息</h2>
+                    
+                    <div class="space-y-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium mb-2" style="color: var(--text-primary);">班级名称</label>
+                            <input type="text" class="input-field w-full" placeholder="请输入班级名称" value="三年级一班">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2" style="color: var(--text-primary);">班级背景图</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-32 h-20 rounded overflow-hidden" style="background: var(--border-color); border: 1px solid var(--border-color);">
+                                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=200&h=120&fit=crop" alt="背景图" class="w-full h-full object-cover" id="bgPreview">
+                                </div>
+                                <div class="flex-1">
+                                    <input type="url" class="input-field w-full mb-2" placeholder="输入图片URL" id="bgImageUrl">
+                                    <button class="btn-secondary text-sm">
+                                        <i class="fas fa-upload mr-1"></i>上传图片
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 班级成员管理 -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="notion-subtitle">班级成员</h2>
+                            <div class="flex space-x-3">
+                                <button class="btn-secondary text-sm">
+                                    <i class="fas fa-file-excel mr-1"></i>Excel导入
+                                </button>
+                                <button onclick="addStudent()" class="btn-primary text-sm">
+                                    <i class="fas fa-plus mr-1"></i>添加学生
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 学生列表 -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <th class="text-left py-3 px-4 text-sm font-medium" style="color: var(--text-primary);">头像</th>
+                                        <th class="text-left py-3 px-4 text-sm font-medium" style="color: var(--text-primary);">学号</th>
+                                        <th class="text-left py-3 px-4 text-sm font-medium" style="color: var(--text-primary);">姓名</th>
+                                        <th class="text-right py-3 px-4 text-sm font-medium" style="color: var(--text-primary);">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentList">
+                                    <tr style="border-bottom: 1px solid var(--border-color);" class="hover:bg-gray-50" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">
+                                        <td class="py-3 px-4">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                张
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">2024001</td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">张三</td>
+                                        <td class="py-3 px-4 text-right">
+                                            <button class="transition" style="color: var(--text-secondary);" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='var(--text-secondary)'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--border-color);" class="hover:bg-gray-50" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">
+                                        <td class="py-3 px-4">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                                李
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">2024002</td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">李四</td>
+                                        <td class="py-3 px-4 text-right">
+                                            <button class="transition" style="color: var(--text-secondary);" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='var(--text-secondary)'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--border-color);" class="hover:bg-gray-50" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">
+                                        <td class="py-3 px-4">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                                王
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">2024003</td>
+                                        <td class="py-3 px-4 text-sm" style="color: var(--text-primary);">王五</td>
+                                        <td class="py-3 px-4 text-right">
+                                            <button class="transition" style="color: var(--text-secondary);" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='var(--text-secondary)'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 检查URL参数确定是创建还是编辑模式
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        
+        if (mode === 'edit') {
+            document.getElementById('pageTitle').textContent = '编辑班级';
+        }
+
+        function goBack() {
+            if (window.parent && window.parent !== window) {
+                if (mode === 'create') {
+                    window.parent.postMessage({ type: 'navigate', page: 'home.html' }, '*');
+                } else {
+                    window.parent.postMessage({ type: 'navigate', page: 'class-management.html' }, '*');
+                }
+            } else {
+                window.history.back();
+            }
+        }
+
+        function saveClass() {
+            alert('班级信息已保存');
+            goBack();
+        }
+
+        function addStudent() {
+            // 添加学生逻辑
+            alert('添加学生功能');
+        }
+
+        // 背景图预览
+        document.getElementById('bgImageUrl').addEventListener('input', function(e) {
+            const url = e.target.value;
+            if (url) {
+                document.getElementById('bgPreview').src = url;
+            }
+        });
+    </script>
+</body>
+</html>
