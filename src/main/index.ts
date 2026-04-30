@@ -28,10 +28,10 @@ let settingsService: SettingsService
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1180,
-    height: 760,
-    minWidth: 900,
-    minHeight: 640,
+    width: 1440,
+    height: 900,
+    minWidth: 1120,
+    minHeight: 760,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
