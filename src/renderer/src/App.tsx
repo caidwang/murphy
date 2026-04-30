@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import ClassManagementPage from './pages/ClassManagementPage';
 import ClassDetailPage from './pages/ClassDetailPage';
+import RollcallPage from './pages/RollcallPage';
+import RollcallStatsPage from './pages/RollcallStatsPage';
+import RollcallSettingsPage from './pages/RollcallSettingsPage';
 
-export type Page = 'class-management' | 'class-detail';
+export type Page =
+  | 'class-management'
+  | 'class-detail'
+  | 'rollcall'
+  | 'rollcall-stats'
+  | 'rollcall-settings';
 
 function App(): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState<Page>('class-management');
@@ -18,8 +26,28 @@ function App(): React.JSX.Element {
     setCurrentPage('class-management');
   };
 
+  const navigateToRollcall = (classId: number) => {
+    setSelectedClassId(classId);
+    setCurrentPage('rollcall');
+  };
+
+  const navigateToRollcallStats = () => {
+    setCurrentPage('rollcall-stats');
+  };
+
+  const navigateToRollcallSettings = () => {
+    setCurrentPage('rollcall-settings');
+  };
+
+  const navigateBackFromRollcall = () => {
+    setCurrentPage('class-detail');
+  };
+
   return (
-    <div className="w-full h-screen text-[var(--text-primary)]" style={{ background: 'var(--bg-primary)'}}>
+    <div
+      className="w-full h-screen text-[var(--text-primary)]"
+      style={{ background: 'var(--bg-primary)' }}
+    >
       {currentPage === 'class-management' && (
         <ClassManagementPage onNavigateToDetail={navigateToDetail} />
       )}
@@ -27,6 +55,26 @@ function App(): React.JSX.Element {
         <ClassDetailPage
           classId={selectedClassId}
           onNavigateBack={navigateToManagement}
+          onNavigateToRollcall={navigateToRollcall}
+        />
+      )}
+      {currentPage === 'rollcall' && selectedClassId && (
+        <RollcallPage
+          classroomId={selectedClassId}
+          onNavigateBack={navigateBackFromRollcall}
+          onNavigateToStats={navigateToRollcallStats}
+          onNavigateToSettings={navigateToRollcallSettings}
+        />
+      )}
+      {currentPage === 'rollcall-stats' && selectedClassId && (
+        <RollcallStatsPage
+          classroomId={selectedClassId}
+          onNavigateBack={() => setCurrentPage('rollcall')}
+        />
+      )}
+      {currentPage === 'rollcall-settings' && (
+        <RollcallSettingsPage
+          onNavigateBack={() => setCurrentPage('rollcall')}
         />
       )}
     </div>

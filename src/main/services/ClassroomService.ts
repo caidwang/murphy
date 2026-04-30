@@ -1,4 +1,4 @@
-import { ClassroomRepository, ClassroomCreationData } from '../repositories/ClassroomRepository';
+import { ClassroomRepository, ClassroomCreationData, ClassroomUpdateData } from '../repositories/ClassroomRepository';
 import { Classroom } from '../models/Classroom';
 import { StudentRepository } from '../repositories/StudentRepository';
 import { getDb } from '../repositories/database';
@@ -54,5 +54,15 @@ export class ClassroomService {
    */
   findById(id: number): Classroom | undefined {
     return this.classroomRepository.findById(id);
+  }
+
+  /**
+   * Updates an existing classroom.
+   * @param id - The ID of the classroom to update.
+   * @param data - The data to update.
+   * @returns The number of changes made.
+   */
+  update(id: number, data: ClassroomUpdateData): number {
+    return this.classroomRepository.update(id, data);
   }
 }

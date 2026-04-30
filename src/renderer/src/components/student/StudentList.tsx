@@ -14,12 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
 
 interface Props {
   students: Student[];
+  onEdit: (student: Student) => void;
+  onDelete: (studentId: number) => void;
 }
 
-export function StudentList({ students }: Props) {
+export function StudentList({ students, onEdit, onDelete }: Props) {
+  if (students.length === 0) {
+    return <div className="text-center py-10 notion-caption">还没有任何学生，点击右上角添加一个吧。</div>;
+  }
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -48,13 +55,14 @@ export function StudentList({ students }: Props) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                       <span className="sr-only">Open menu</span>
-                       {/* Icon needed */}
-                       ...
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>编辑</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-500">删除</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(student)}>编辑</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onDelete(student.id)} className="text-red-500">
+                      删除
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

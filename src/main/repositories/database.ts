@@ -45,6 +45,27 @@ export function initializeDatabase(): import("better-sqlite3").Database {
         UNIQUE (classroom_id, student_number)
       )
     `).run();
+
+    // Create rollcall_records table
+    _db!.prepare(`
+      CREATE TABLE IF NOT EXISTS rollcall_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER NOT NULL,
+        classroom_id INTEGER NOT NULL,
+        feedback TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE,
+        FOREIGN KEY (classroom_id) REFERENCES classrooms (id) ON DELETE CASCADE
+      )
+    `).run();
+
+    // Create settings table
+    _db!.prepare(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    `).run();
   });
 
   initStmt();

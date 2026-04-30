@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Classroom } from 'src/main/models/Classroom';
 import { Student } from 'src/main/models/Student';
-import { Sidebar } from '~/components/common/Sidebar';
 import { StudentList } from '~/components/student/StudentList';
+import { CreateEditStudentDialog } from '~/components/student/CreateEditStudentDialog';
 import { Button } from '~/components/ui/button';
 
 interface Props {
   classId: number;
   onNavigateBack: () => void;
+  onNavigateToRollcall: (classId: number) => void;
 }
 
-export default function ClassDetailPage({ classId, onNavigateBack }: Props) {
+export default function ClassDetailPage({ classId, onNavigateBack, onNavigateToRollcall }: Props) {
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   useEffect(() => {
     const fetchClassDetails = async () => {
-      // Assuming a findById IPC handler for classrooms will be created
       const classDetail = await window.electron.ipcRenderer.invoke('classrooms:findById', classId);
       setClassroom(classDetail);
     };
@@ -30,29 +32,70 @@ export default function ClassDetailPage({ classId, onNavigateBack }: Props) {
     fetchStudents();
   }, [classId]);
 
+  const handleSaveStudent = async () => {
+    const result = await window.electron.ipcRenderer.invoke('students:getByClassroomId', classId);
+    setStudents(result);
+  };
+
+  const handleDeleteStudent = async (studentId: number) => {
+    if (confirm('确定要删除这个学生吗？')) {
+      await window.electron.ipcRenderer.invoke('students:delete', studentId);
+      handleSaveStudent();
+    }
+  };
+
+  const handleEditStudent = (student: Student) => {
+    setSelectedStudent(student);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleAddStudent = () => {
+    setSelectedStudent(null);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false);
+    setSelectedStudent(null);
+  };
+
   return (
     <div className="w-full h-screen flex">
-      <Sidebar onNavigateBack={onNavigateBack} />
       <main className="flex-1 overflow-y-auto p-8">
         <div className="flex items-center space-x-4 mb-8">
           <Button variant="ghost" size="icon" onClick={onNavigateBack}>
-            {/* Back icon needed */}
             &lt;
           </Button>
           <h1 className="notion-title">{classroom?.name || '班级详情'}</h1>
         </div>
 
-        {/* This is where the function cards from the prototype would go */}
-        {/* <div className="mb-6"> ... </div> */}
-
         <div className="mt-8">
-           <div className="flex justify-between items-center mb-4">
-             <h2 className="notion-subtitle">学生列表</h2>
-             <Button className="btn-primary">添加学生</Button>
-           </div>
-          <StudentList students={students} />
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="notion-subtitle">学生列表</h2>
+            <div className="flex space-x-2">
+              <Button className="btn-primary" onClick={() => onNavigateToRollcall(classId)}>
+                随机点名
+              </Button>
+              <Button className="btn-primary" onClick={handleAddStudent}>
+                添加学生
+              </Button>
+            </div>
+          </div>
+          <StudentList
+            students={students}
+            onEdit={handleEditStudent}
+            onDelete={handleDeleteStudent}
+          />
         </div>
       </main>
+
+      <CreateEditStudentDialog
+        isOpen={isCreateDialogOpen}
+        onClose={handleCloseDialog}
+        onSave={handleSaveStudent}
+        classroomId={classId}
+        initialStudentData={selectedStudent}
+      />
     </div>
   );
 }

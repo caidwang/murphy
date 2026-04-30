@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
-import { ClassroomCreationData } from '../repositories/ClassroomRepository';
-import { ClassroomService } from '../services/ClassroomService'; // Import the class for type hinting
+import { ClassroomCreationData, ClassroomUpdateData } from '../repositories/ClassroomRepository';
+import { ClassroomService } from '../services/ClassroomService';
 
 export function registerClassroomHandlers(classroomService: ClassroomService): void {
   // Handler for creating a new classroom
@@ -54,4 +54,21 @@ export function registerClassroomHandlers(classroomService: ClassroomService): v
       throw new Error('Failed to find the classroom.');
     }
   });
+
+  // Handler for updating a classroom
+  ipcMain.handle(
+    'classrooms:update',
+    async (_event, id: number, data: ClassroomUpdateData) => {
+      if (typeof id !== 'number') {
+        throw new Error('Invalid classroom ID provided. Must be a number.');
+      }
+      try {
+        const changes = classroomService.update(id, data);
+        return changes;
+      } catch (error) {
+        console.error(`Failed to update classroom ${id}:`, error);
+        throw new Error('Failed to update the classroom.');
+      }
+    }
+  );
 }

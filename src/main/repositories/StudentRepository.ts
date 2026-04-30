@@ -122,4 +122,15 @@ export class StudentRepository {
     const result = stmt.run(classroomId);
     return result.changes;
   }
+
+  /**
+   * Counts the number of students in a specific classroom.
+   * @param classroomId The ID of the classroom.
+   * @returns The number of students in that classroom.
+   */
+  countByClassroomId(classroomId: number): number {
+    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM students WHERE classroom_id = ?');
+    const result = stmt.get(classroomId) as { count: number };
+    return result.count;
+  }
 }
