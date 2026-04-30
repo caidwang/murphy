@@ -34,7 +34,7 @@ function createWindow(): void {
     minHeight: 760,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -63,6 +63,10 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(icon)
+  }
+
   // Initialize the database and get the instance
   const dbInstance = initializeDatabase()
 
