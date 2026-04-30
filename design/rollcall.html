@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欧皇选拔器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * { font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    </style>
+</head>
+<body style="background: var(--bg-primary);">
+    <div class="w-full h-screen flex" style="background: var(--bg-primary);">
+        <!-- 左侧导航栏 -->
+        <aside class="w-64 flex flex-col" style="background: var(--bg-white); border-right: 1px solid var(--border-color);">
+            <div class="p-6" style="border-bottom: 1px solid var(--border-color);">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-book text-sm" style="color: var(--text-primary);"></i>
+                    <div>
+                        <p class="font-bold text-lg" style="color: var(--text-primary);">教学互动</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 p-4">
+                <div class="mb-6">
+                    <p class="text-xs font-semibold mb-3 uppercase tracking-wider" style="color: var(--text-tertiary);">导航</p>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="navigateTo('home.html')" class="w-full flex items-center space-x-3 px-4 py-3 rounded transition nav-item">
+                                <i class="fas fa-home w-5"></i>
+                                <span>首页</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-xs font-semibold mb-3 uppercase tracking-wider" style="color: var(--text-tertiary);">功能</p>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="navigateTo('rollcall.html')" class="w-full flex items-center space-x-3 px-4 py-3 rounded transition nav-item-active">
+                                <i class="fas fa-random w-5"></i>
+                                <span>欧皇选拔器</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 右侧主内容区 -->
+        <main class="flex-1 overflow-y-auto" style="background: var(--bg-primary);">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="navigateTo('class.html')" class="transition" style="color: var(--text-secondary);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h1 class="notion-title">欧皇选拔器</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="navigateTo('rollcall-stats.html')" class="px-4 py-2 text-sm rounded transition nav-item">
+                            <i class="fas fa-chart-bar mr-2"></i>数据统计
+                        </button>
+                        <button onclick="navigateTo('rollcall-settings.html')" class="px-4 py-2 text-sm rounded transition nav-item">
+                            <i class="fas fa-cog mr-2"></i>设置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 滚动名字显示区 -->
+                <div class="flex items-center justify-center mb-8">
+                    <div class="w-full max-w-4xl">
+                        <div class="card-shadow p-12 mb-8">
+                            <div id="nameDisplay" class="text-center">
+                                <div class="text-8xl font-bold mb-4" id="currentName" style="color: var(--text-primary);">点击开始</div>
+                                <div class="text-2xl notion-caption" id="statusText">准备开始点名</div>
+                            </div>
+                        </div>
+
+                        <!-- 控制按钮 -->
+                        <div class="flex justify-center space-x-6 mb-8">
+                            <button id="startStopBtn" onclick="toggleRollcall()" class="w-20 h-20 text-white flex items-center justify-center text-2xl transition rounded" style="background: var(--text-primary);" onmouseover="this.style.background='#2E2D29'" onmouseout="this.style.background='var(--text-primary)'">
+                                <i class="fas fa-play" id="playIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- 反馈区域（抽中后显示） -->
+                        <div id="feedbackArea" class="hidden card-shadow p-6">
+                            <div class="text-center mb-6">
+                                <h3 class="notion-subtitle mb-2">本次抽中：<span id="selectedName" style="color: var(--text-primary);"></span></h3>
+                                <p class="notion-caption">请对本次回答进行反馈</p>
+                            </div>
+                            <div class="flex justify-center space-x-8">
+                                <button onclick="giveFeedback('like')" class="flex flex-col items-center space-y-2 px-8 py-4 rounded transition nav-item">
+                                    <div class="w-16 h-16 rounded flex items-center justify-center" style="background: var(--text-primary);">
+                                        <i class="fas fa-thumbs-up text-2xl" style="color: var(--bg-white);"></i>
+                                    </div>
+                                    <span class="text-sm font-medium notion-caption">点赞</span>
+                                </button>
+                                <button onclick="giveFeedback('angry')" class="flex flex-col items-center space-y-2 px-8 py-4 rounded transition nav-item">
+                                    <div class="w-16 h-16 rounded flex items-center justify-center" style="background: var(--text-secondary);">
+                                        <i class="fas fa-angry text-2xl" style="color: var(--bg-white);"></i>
+                                    </div>
+                                    <span class="text-sm font-medium notion-caption">需要改进</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let isRolling = false;
+        let rollInterval = null;
+        let names = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十', '郑一', '王二'];
+        let currentIndex = 0;
+        let selectedName = '';
+
+        function navigateTo(page) {
+            if (window.parent) {
+                window.parent.postMessage({ type: 'navigate', page: page }, '*');
+            } else {
+                window.location.href = page;
+            }
+        }
+
+        function toggleRollcall() {
+            const btn = document.getElementById('startStopBtn');
+            const playIcon = document.getElementById('playIcon');
+            const currentNameEl = document.getElementById('currentName');
+            const statusText = document.getElementById('statusText');
+            const feedbackArea = document.getElementById('feedbackArea');
+
+            if (!isRolling) {
+                isRolling = true;
+                playIcon.className = 'fas fa-stop';
+                statusText.textContent = '正在抽取...';
+                feedbackArea.classList.add('hidden');
+
+                rollInterval = setInterval(() => {
+                    currentIndex = (currentIndex + 1) % names.length;
+                    currentNameEl.textContent = names[currentIndex];
+                }, 80);
+            } else {
+                isRolling = false;
+                clearInterval(rollInterval);
+                playIcon.className = 'fas fa-play';
+                selectedName = names[currentIndex];
+                currentNameEl.textContent = selectedName;
+                statusText.textContent = '抽中：' + selectedName;
+                feedbackArea.classList.remove('hidden');
+                document.getElementById('selectedName').textContent = selectedName;
+            }
+        }
+
+        function giveFeedback(type) {
+            console.log('反馈:', selectedName, type);
+            document.getElementById('feedbackArea').classList.add('hidden');
+            document.getElementById('statusText').textContent = '准备开始点名';
+        }
+    </script>
+</body>
+</html>

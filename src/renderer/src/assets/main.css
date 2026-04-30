@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Shadcn UI Base Colors (Slate) */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+
+    /* Custom App Design Colors from styles.css */
+    --bg-primary: #FAFAFA;
+    --bg-white: #FFFFFF;
+    --text-primary: #37352F;
+    --text-secondary: #787774;
+    --text-tertiary: #9B9A97;
+    --border-color: #E9E9E7;
+    --hover-bg: #F7F6F3;
+    --selected-bg: #F1F1EF;
+    --accent-blue: #2383E2;
+  }
+
+  .dark {
+    /* Dark theme colors can be defined here later */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Alibaba PuHuiTi', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+}
+
+/* Custom App-specific styles from styles.css */
+
+/*滚动条*/
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 卡片 */
+.card-shadow {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.card-shadow-hover {
+    @apply card-shadow transition-all duration-200 ease-in-out cursor-pointer;
+}
+.card-shadow-hover:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    background: var(--hover-bg);
+}
+
+/* 按钮 */
+.btn-primary {
+    background: var(--text-primary);
+    color: var(--bg-white);
+    @apply px-4 py-2 rounded-md transition-all duration-200 font-medium text-sm;
+}
+.btn-primary:hover {
+    background: #2E2D29;
+}
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    @apply px-4 py-2 rounded-md transition-all duration-200 font-medium text-sm;
+}
+.btn-secondary:hover {
+    background: var(--hover-bg);
+    border-color: var(--text-secondary);
+}
+
+/* 导航 */
+.nav-item-active {
+    background: var(--selected-bg);
+    color: var(--text-primary);
+    @apply rounded font-medium;
+}
+.nav-item {
+    color: var(--text-secondary);
+    @apply transition-all duration-150 rounded;
+}
+.nav-item:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* 标题 */
+.notion-title {
+    @apply text-4xl font-bold text-[var(--text-primary)] leading-tight;
+}
+.notion-subtitle {
+    @apply text-xl font-semibold text-[var(--text-primary)] leading-snug;
+}
+.notion-caption {
+    @apply text-sm text-[var(--text-secondary)] leading-normal;
+}
