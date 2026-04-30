@@ -48,7 +48,7 @@ jobs:
         run: npm run build
 
       - name: Rebuild native dependencies for macOS ${{ matrix.arch }}
-        run: npx electron-builder install-app-deps --config ./electron-builder.yml --arch=${{ matrix.arch }}
+        run: npx electron-builder install-app-deps --arch=${{ matrix.arch }}
 
       - name: Package macOS app
         run: npx electron-builder --config ./electron-builder.yml --mac dmg --${{ matrix.arch }} --publish never
@@ -89,7 +89,7 @@ jobs:
         run: npm run build
 
       - name: Rebuild native dependencies for Windows x64
-        run: npx electron-builder install-app-deps --config ./electron-builder.yml --arch=x64
+        run: npx electron-builder install-app-deps --arch=x64
 
       - name: Package Windows app
         run: npx electron-builder --config ./electron-builder.yml --win nsis --x64 --publish never
