@@ -17,19 +17,21 @@ import { registerRollcallHandlers } from './ipc-handlers/rollcallHandler'
 import { registerSettingsHandlers } from './ipc-handlers/settingsHandler'
 
 // Global instances for repositories and services
-let classroomRepository: ClassroomRepository;
-let studentRepository: StudentRepository;
-let rollcallRecordRepository: RollcallRecordRepository;
-let classroomService: ClassroomService;
-let studentService: StudentService;
-let rollcallService: RollcallService;
-let settingsService: SettingsService;
+let classroomRepository: ClassroomRepository
+let studentRepository: StudentRepository
+let rollcallRecordRepository: RollcallRecordRepository
+let classroomService: ClassroomService
+let studentService: StudentService
+let rollcallService: RollcallService
+let settingsService: SettingsService
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1180,
+    height: 760,
+    minWidth: 900,
+    minHeight: 640,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -62,24 +64,24 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Initialize the database and get the instance
-  const dbInstance = initializeDatabase();
+  const dbInstance = initializeDatabase()
 
   // Instantiate Repositories
-  classroomRepository = new ClassroomRepository(dbInstance);
-  studentRepository = new StudentRepository(dbInstance);
-  rollcallRecordRepository = new RollcallRecordRepository(dbInstance);
+  classroomRepository = new ClassroomRepository(dbInstance)
+  studentRepository = new StudentRepository(dbInstance)
+  rollcallRecordRepository = new RollcallRecordRepository(dbInstance)
 
   // Instantiate Services with their repository dependencies
-  classroomService = new ClassroomService(classroomRepository, studentRepository);
-  studentService = new StudentService(studentRepository);
-  rollcallService = new RollcallService(rollcallRecordRepository);
-  settingsService = new SettingsService();
+  classroomService = new ClassroomService(classroomRepository, studentRepository)
+  studentService = new StudentService(studentRepository)
+  rollcallService = new RollcallService(rollcallRecordRepository)
+  settingsService = new SettingsService()
 
   // Register IPC handlers with their service dependencies
-  registerClassroomHandlers(classroomService);
-  registerStudentHandlers(studentService);
-  registerRollcallHandlers(rollcallService);
-  registerSettingsHandlers(settingsService);
+  registerClassroomHandlers(classroomService)
+  registerStudentHandlers(studentService)
+  registerRollcallHandlers(rollcallService)
+  registerSettingsHandlers(settingsService)
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')

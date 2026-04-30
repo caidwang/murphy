@@ -7,6 +7,7 @@ import { Button } from '~/components/ui/button'
 import { RollcallDisplay } from '~/components/rollcall/RollcallDisplay'
 import { RollcallControls } from '~/components/rollcall/RollcallControls'
 import { RollcallFeedback } from '~/components/rollcall/RollcallFeedback'
+import { StudentAvatar } from '~/components/student/StudentAvatar'
 
 interface Props {
   classroomId: number
@@ -158,10 +159,10 @@ export default function RollcallPage({
   }, [])
 
   return (
-    <div className="flex h-screen w-full bg-[#F7F6F3]">
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full max-w-7xl flex-col px-6 py-6 lg:px-8">
-          <div className="mb-6 flex flex-col gap-4 border-b border-[var(--border-color)] pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex h-screen w-full overflow-hidden bg-[#F7F6F3]">
+      <main className="min-h-0 flex-1 overflow-hidden">
+        <div className="mx-auto flex h-full max-w-7xl flex-col px-4 py-4 lg:px-5">
+          <div className="mb-3 flex shrink-0 flex-col gap-3 border-b border-[var(--border-color)] pb-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -176,7 +177,9 @@ export default function RollcallPage({
                   <Shuffle className="h-4 w-4" />
                   随机点名
                 </div>
-                <h1 className="notion-title">课堂点名台</h1>
+                <h1 className="text-3xl font-bold leading-tight text-[var(--text-primary)]">
+                  课堂点名台
+                </h1>
               </div>
             </div>
 
@@ -192,8 +195,8 @@ export default function RollcallPage({
             </div>
           </div>
 
-          <div className="grid flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="space-y-4">
+          <div className="grid min-h-0 flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto_auto_auto] gap-3">
               <RollcallDisplay
                 student={currentStudent}
                 isRolling={isRolling}
@@ -226,9 +229,9 @@ export default function RollcallPage({
               )}
             </div>
 
-            <aside className="space-y-4">
-              <section className="rounded-lg border border-[var(--border-color)] bg-white p-5">
-                <div className="mb-4 flex items-center justify-between">
+            <aside className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3">
+              <section className="rounded-lg border border-[var(--border-color)] bg-white p-4">
+                <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-base font-semibold text-[var(--text-primary)]">本轮状态</h2>
                   <span className="rounded bg-[#F7F6F3] px-2 py-1 text-xs text-[var(--text-secondary)]">
                     {settings.allowRepeat ? '允许重复' : '不重复'}
@@ -236,7 +239,7 @@ export default function RollcallPage({
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-md bg-[#FAFAFA] p-4">
+                  <div className="rounded-md bg-[#FAFAFA] p-3">
                     <div className="mb-2 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                       <Users className="h-4 w-4" />
                       待抽
@@ -245,7 +248,7 @@ export default function RollcallPage({
                       {waitingCount}
                     </div>
                   </div>
-                  <div className="rounded-md bg-[#FAFAFA] p-4">
+                  <div className="rounded-md bg-[#FAFAFA] p-3">
                     <div className="mb-2 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                       <CheckCircle2 className="h-4 w-4" />
                       已点
@@ -257,13 +260,13 @@ export default function RollcallPage({
                 </div>
               </section>
 
-              <section className="rounded-lg border border-[var(--border-color)] bg-white p-5">
-                <div className="mb-4 flex items-center justify-between">
+              <section className="flex min-h-0 flex-col rounded-lg border border-[var(--border-color)] bg-white p-4">
+                <div className="mb-3 flex shrink-0 items-center justify-between">
                   <h2 className="text-base font-semibold text-[var(--text-primary)]">候选名单</h2>
                   <span className="text-sm text-[var(--text-secondary)]">{waitingCount} 人</span>
                 </div>
 
-                <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                   {availableStudents.length > 0 ? (
                     availableStudents.slice(0, 24).map((student) => (
                       <div
@@ -274,9 +277,12 @@ export default function RollcallPage({
                             : 'bg-[#FAFAFA] text-[var(--text-primary)]'
                         }`}
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold">
-                          {student.name.trim().charAt(0) || '?'}
-                        </div>
+                        <StudentAvatar
+                          name={student.name}
+                          seed={`${student.id}-${student.student_number}`}
+                          imagePath={student.avatar_path}
+                          className="h-9 w-9"
+                        />
                         <div className="min-w-0">
                           <div className="truncate font-medium">{student.name}</div>
                           <div className="truncate text-xs text-[var(--text-secondary)]">
@@ -293,7 +299,7 @@ export default function RollcallPage({
                 </div>
 
                 {availableStudents.length > 24 && (
-                  <div className="mt-3 text-center text-xs text-[var(--text-secondary)]">
+                  <div className="mt-3 shrink-0 text-center text-xs text-[var(--text-secondary)]">
                     还有 {availableStudents.length - 24} 人未显示
                   </div>
                 )}

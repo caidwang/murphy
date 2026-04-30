@@ -1,64 +1,83 @@
-import { useState, useEffect } from 'react';
-import { Classroom } from 'src/main/models/Classroom';
-import { ClassroomCreationData, ClassroomUpdateData } from 'src/main/repositories/ClassroomRepository';
-import { Button } from '../ui/button.tsx';
+import { useState, useEffect } from 'react'
+import type { ReactElement } from 'react'
+import { Classroom } from 'src/main/models/Classroom'
+import {
+  ClassroomCreationData,
+  ClassroomUpdateData
+} from 'src/main/repositories/ClassroomRepository'
+import { Button } from '../ui/button.tsx'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '../ui/dialog.tsx';
-import { Input } from '../ui/input.tsx';
-import { Label } from '../ui/label.tsx';
+  DialogTitle
+} from '../ui/dialog.tsx'
+import { Input } from '../ui/input.tsx'
+import { Label } from '../ui/label.tsx'
 
 interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: () => void; // Callback to refresh the list or navigate
-  initialClassData?: Classroom | null; // For editing
+  isOpen: boolean
+  onClose: () => void
+  onSave: () => void // Callback to refresh the list or navigate
+  initialClassData?: Classroom | null // For editing
 }
 
-export function CreateEditClassDialog({ isOpen, onClose, onSave, initialClassData }: Props) {
-  const [name, setName] = useState(initialClassData?.name || '');
-  const [backgroundImagePath, setBackgroundImagePath] = useState(initialClassData?.background_image_path || '');
-  const [themeColor, setThemeColor] = useState(initialClassData?.theme_color || '');
-  const [isSaving, setIsSaving] = useState(false);
+export function CreateEditClassDialog({
+  isOpen,
+  onClose,
+  onSave,
+  initialClassData
+}: Props): ReactElement {
+  const [name, setName] = useState(initialClassData?.name || '')
+  const [backgroundImagePath, setBackgroundImagePath] = useState(
+    initialClassData?.background_image_path || ''
+  )
+  const [themeColor, setThemeColor] = useState(initialClassData?.theme_color || '')
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     if (initialClassData) {
-      setName(initialClassData.name);
-      setBackgroundImagePath(initialClassData.background_image_path || '');
-      setThemeColor(initialClassData.theme_color || '');
+      setName(initialClassData.name)
+      setBackgroundImagePath(initialClassData.background_image_path || '')
+      setThemeColor(initialClassData.theme_color || '')
     } else {
-      setName('');
-      setBackgroundImagePath('');
-      setThemeColor('');
+      setName('')
+      setBackgroundImagePath('')
+      setThemeColor('')
     }
-  }, [initialClassData]);
+  }, [initialClassData])
 
-  const handleSubmit = async () => {
-    setIsSaving(true);
+  const handleSubmit = async (): Promise<void> => {
+    setIsSaving(true)
     try {
       if (initialClassData && initialClassData.id) {
         // Update existing classroom
-        const data: ClassroomUpdateData = { name, background_image_path: backgroundImagePath, theme_color: themeColor };
-        await window.electron.ipcRenderer.invoke('classrooms:update', initialClassData.id, data);
+        const data: ClassroomUpdateData = {
+          name,
+          background_image_path: backgroundImagePath,
+          theme_color: themeColor
+        }
+        await window.electron.ipcRenderer.invoke('classrooms:update', initialClassData.id, data)
       } else {
         // Create new classroom
-        const data: ClassroomCreationData = { name, background_image_path: backgroundImagePath, theme_color: themeColor };
-        await window.electron.ipcRenderer.invoke('classrooms:create', data);
+        const data: ClassroomCreationData = {
+          name,
+          background_image_path: backgroundImagePath,
+          theme_color: themeColor
+        }
+        await window.electron.ipcRenderer.invoke('classrooms:create', data)
       }
-      onSave(); // Notify parent to refresh/update
-      onClose();
+      onSave() // Notify parent to refresh/update
+      onClose()
     } catch (error) {
-      console.error('Failed to save classroom:', error);
-      alert('保存班级信息失败: ' + (error as Error).message);
+      console.error('Failed to save classroom:', error)
+      alert('保存班级信息失败: ' + (error as Error).message)
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,7 +110,7 @@ export function CreateEditClassDialog({ isOpen, onClose, onSave, initialClassDat
               value={backgroundImagePath}
               onChange={(e) => setBackgroundImagePath(e.target.value)}
               className="col-span-3"
-              placeholder="请输入图片URL"
+              placeholder="留空则使用默认班级背景图"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -117,5 +136,5 @@ export function CreateEditClassDialog({ isOpen, onClose, onSave, initialClassDat
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -1,30 +1,34 @@
-import { Student } from 'src/main/models/Student';
+import { Student } from 'src/main/models/Student'
+import type { ReactElement } from 'react'
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "~/components/ui/table";
+  TableRow
+} from '~/components/ui/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+  DropdownMenuTrigger
+} from '~/components/ui/dropdown-menu'
+import { Button } from '~/components/ui/button'
+import { MoreHorizontal } from 'lucide-react'
+import { StudentAvatar } from './StudentAvatar'
 
 interface Props {
-  students: Student[];
-  onEdit: (student: Student) => void;
-  onDelete: (studentId: number) => void;
+  students: Student[]
+  onEdit: (student: Student) => void
+  onDelete: (studentId: number) => void
 }
 
-export function StudentList({ students, onEdit, onDelete }: Props) {
+export function StudentList({ students, onEdit, onDelete }: Props): ReactElement {
   if (students.length === 0) {
-    return <div className="text-center py-10 notion-caption">还没有任何学生，点击右上角添加一个吧。</div>;
+    return (
+      <div className="text-center py-10 notion-caption">还没有任何学生，点击右上角添加一个吧。</div>
+    )
   }
 
   return (
@@ -42,10 +46,10 @@ export function StudentList({ students, onEdit, onDelete }: Props) {
           {students.map((student) => (
             <TableRow key={student.id}>
               <TableCell>
-                <img
-                  src={student.avatar_path || 'https://via.placeholder.com/40'}
-                  alt={student.name}
-                  className="w-10 h-10 rounded-full object-cover"
+                <StudentAvatar
+                  name={student.name}
+                  seed={`${student.id}-${student.student_number}`}
+                  imagePath={student.avatar_path}
                 />
               </TableCell>
               <TableCell className="font-medium">{student.name}</TableCell>
@@ -71,5 +75,5 @@ export function StudentList({ students, onEdit, onDelete }: Props) {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }
