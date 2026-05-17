@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 import { StatsOverview } from '~/components/rollcall/StatsOverview';
 import { RedList } from '~/components/rollcall/RedList';
@@ -35,32 +35,50 @@ export default function RollcallStatsPage({ classroomId, onNavigateBack }: Props
       angry_count: number;
     }>
   >([]);
+  const [isClearing, setIsClearing] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    const rollcallStats = await window.electron.ipcRenderer.invoke(
+      'rollcall:getStats',
+      classroomId
+    );
+    setStats(rollcallStats);
+
+    const topLiked = await window.electron.ipcRenderer.invoke(
+      'rollcall:getTopLikedStudents',
+      classroomId,
+      10
+    );
+    setRedList(topLiked);
+
+    const topAngry = await window.electron.ipcRenderer.invoke(
+      'rollcall:getTopAngryStudents',
+      classroomId,
+      10
+    );
+    setBlackList(topAngry);
+  }, [classroomId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const rollcallStats = await window.electron.ipcRenderer.invoke(
-        'rollcall:getStats',
-        classroomId
-      );
-      setStats(rollcallStats);
+    void fetchData();
+  }, [fetchData]);
 
-      const topLiked = await window.electron.ipcRenderer.invoke(
-        'rollcall:getTopLikedStudents',
-        classroomId,
-        10
-      );
-      setRedList(topLiked);
+  const handleClearLeaderboard = async () => {
+    const confirmed = window.confirm('确认清空当前班级的排行榜和历史点名记录？抽签状态不会被重置。');
+    if (!confirmed) return;
 
-      const topAngry = await window.electron.ipcRenderer.invoke(
-        'rollcall:getTopAngryStudents',
-        classroomId,
-        10
-      );
-      setBlackList(topAngry);
-    };
-
-    fetchData();
-  }, [classroomId]);
+    setIsClearing(true);
+    try {
+      await window.electron.ipcRenderer.invoke('rollcall:clearRecords', classroomId);
+      await fetchData();
+      alert('排行榜已清空');
+    } catch (error) {
+      console.error('Failed to clear rollcall records:', error);
+      alert('清空排行榜失败');
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   return (
     <div className="w-full h-screen flex">
@@ -72,6 +90,14 @@ export default function RollcallStatsPage({ classroomId, onNavigateBack }: Props
             </Button>
             <h1 className="notion-title">数据统计</h1>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleClearLeaderboard}
+            disabled={isClearing || stats.totalRollcalls === 0}
+            className="btn-secondary"
+          >
+            {isClearing ? '清空中...' : '清空排行榜'}
+          </Button>
         </div>
 
         <StatsOverview

@@ -1,6 +1,21 @@
 import { RollcallRecordRepository, RollcallRecordCreationData } from '../repositories/RollcallRecordRepository';
 import { RollcallRecord, FeedbackType } from '../models/RollcallRecord';
 
+export interface RollcallStudentState {
+  classroom_id: number;
+  student_id: number;
+  weight: number;
+  is_drawn: 0 | 1;
+  updated_at: string;
+}
+
+export interface RollcallStudentStateInput {
+  classroomId: number;
+  studentId: number;
+  weight: number;
+  isDrawn: boolean;
+}
+
 export class RollcallService {
   private rollcallRecordRepository: RollcallRecordRepository;
 
@@ -32,6 +47,58 @@ export class RollcallService {
       'UPDATE rollcall_records SET feedback = ? WHERE id = ?'
     );
     const result = stmt.run(feedback, recordId);
+    return result.changes;
+  }
+
+  /**
+   * Persists drawing state for one student without touching leaderboard records.
+   */
+  saveStudentState(state: RollcallStudentStateInput): void {
+    const normalizedWeight = Math.max(1, Math.floor(state.weight));
+    const stmt = this.rollcallRecordRepository.getDb().prepare(`
+      INSERT INTO rollcall_student_states (classroom_id, student_id, weight, is_drawn, updated_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(classroom_id, student_id) DO UPDATE SET
+        weight = excluded.weight,
+        is_drawn = excluded.is_drawn,
+        updated_at = CURRENT_TIMESTAMP
+    `);
+
+    stmt.run(state.classroomId, state.studentId, normalizedWeight, state.isDrawn ? 1 : 0);
+  }
+
+  /**
+   * Gets persisted drawing state for a classroom.
+   */
+  getStudentStates(classroomId: number): RollcallStudentState[] {
+    const stmt = this.rollcallRecordRepository.getDb().prepare(`
+      SELECT classroom_id, student_id, weight, is_drawn, updated_at
+      FROM rollcall_student_states
+      WHERE classroom_id = ?
+    `);
+
+    return stmt.all(classroomId) as RollcallStudentState[];
+  }
+
+  /**
+   * Clears draw range and magic multipliers only.
+   */
+  resetStudentStates(classroomId: number): number {
+    const stmt = this.rollcallRecordRepository.getDb().prepare(
+      'DELETE FROM rollcall_student_states WHERE classroom_id = ?'
+    );
+    const result = stmt.run(classroomId);
+    return result.changes;
+  }
+
+  /**
+   * Clears leaderboard/history records only.
+   */
+  clearRecordsByClassroomId(classroomId: number): number {
+    const stmt = this.rollcallRecordRepository.getDb().prepare(
+      'DELETE FROM rollcall_records WHERE classroom_id = ?'
+    );
+    const result = stmt.run(classroomId);
     return result.changes;
   }
 

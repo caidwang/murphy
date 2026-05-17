@@ -2,12 +2,14 @@ import { getDb } from '../repositories/database';
 
 export interface RollcallSettings {
   allowRepeat: boolean;
+  noRepeatCorrectOnly: boolean;
   autoSave: boolean;
   scrollSpeed: 'slow' | 'medium' | 'fast';
 }
 
 const DEFAULT_SETTINGS: RollcallSettings = {
   allowRepeat: true,
+  noRepeatCorrectOnly: true,
   autoSave: true,
   scrollSpeed: 'medium',
 };
@@ -33,6 +35,9 @@ export class SettingsService {
         switch (key) {
           case 'allowRepeat':
             settings.allowRepeat = value === 'true';
+            break;
+          case 'noRepeatCorrectOnly':
+            settings.noRepeatCorrectOnly = value === 'true';
             break;
           case 'autoSave':
             settings.autoSave = value === 'true';
@@ -63,6 +68,7 @@ export class SettingsService {
 
       const saveTransaction = db.transaction(() => {
         upsertStmt.run('rollcall_allowRepeat', String(settings.allowRepeat));
+        upsertStmt.run('rollcall_noRepeatCorrectOnly', String(settings.noRepeatCorrectOnly));
         upsertStmt.run('rollcall_autoSave', String(settings.autoSave));
         upsertStmt.run('rollcall_scrollSpeed', settings.scrollSpeed);
       });

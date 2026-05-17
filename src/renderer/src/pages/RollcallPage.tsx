@@ -42,9 +42,11 @@ export default function RollcallPage({
   const [showFeedback, setShowFeedback] = useState(false)
   const [currentRecordId, setCurrentRecordId] = useState<number | null>(null)
   const [magicWeights, setMagicWeights] = useState<Record<number, number>>({})
+  const [drawnStudentIds, setDrawnStudentIds] = useState<Record<number, boolean>>({})
   const [recentStudents, setRecentStudents] = useState<Student[]>([])
   const [settings, setSettings] = useState({
     allowRepeat: true,
+    noRepeatCorrectOnly: true,
     scrollSpeed: 'medium'
   })
 
@@ -54,15 +56,21 @@ export default function RollcallPage({
   const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentStudentRef = useRef<Student | null>(null)
 
-  const availableStudents = students
   const getMagicWeight = useCallback(
     (studentId: number): number => magicWeights[studentId] || 1,
     [magicWeights]
   )
-  const magicDeckCount = students.reduce((total, student) => total + getMagicWeight(student.id), 0)
-  const extraMagicCards = Math.max(0, magicDeckCount - students.length)
+  const availableStudents = settings.allowRepeat
+    ? students
+    : students.filter((student) => !drawnStudentIds[student.id])
+  const magicDeckCount = availableStudents.reduce(
+    (total, student) => total + getMagicWeight(student.id),
+    0
+  )
+  const extraMagicCards = Math.max(0, magicDeckCount - availableStudents.length)
+  const drawnCount = Object.values(drawnStudentIds).filter(Boolean).length
   const isEmpty = students.length === 0
-  const canDraw = !isRolling && !isEmpty
+  const canDraw = !isRolling && !isEmpty && availableStudents.length > 0
 
   const clearRollTimers = useCallback((): void => {
     if (rollIntervalRef.current) {
@@ -99,7 +107,22 @@ export default function RollcallPage({
         classroomId
       )
       setStudents(studentList)
-      setMagicWeights({})
+      const rollcallStates = (await window.electron.ipcRenderer.invoke(
+        'rollcall:getStudentStates',
+        classroomId
+      )) as Array<{ student_id: number; weight: number; is_drawn: 0 | 1 }>
+      setMagicWeights(
+        rollcallStates.reduce<Record<number, number>>((weights, state) => {
+          if (state.weight > 1) weights[state.student_id] = state.weight
+          return weights
+        }, {})
+      )
+      setDrawnStudentIds(
+        rollcallStates.reduce<Record<number, boolean>>((drawnIds, state) => {
+          if (state.is_drawn === 1) drawnIds[state.student_id] = true
+          return drawnIds
+        }, {})
+      )
       setRecentStudents([])
       setCurrentStudent(null)
       currentStudentRef.current = null
@@ -108,6 +131,7 @@ export default function RollcallPage({
       if (rollcallSettings) {
         setSettings({
           allowRepeat: rollcallSettings.allowRepeat ?? true,
+          noRepeatCorrectOnly: rollcallSettings.noRepeatCorrectOnly ?? true,
           scrollSpeed: rollcallSettings.scrollSpeed ?? 'medium'
         })
       }
@@ -240,6 +264,24 @@ export default function RollcallPage({
     if (currentRecordId) {
       await window.electron.ipcRenderer.invoke('rollcall:updateFeedback', currentRecordId, feedback)
     }
+    if (currentStudent) {
+      const nextWeight =
+        drawMode === 'magic' ? Math.max(1, (magicWeights[currentStudent.id] || 1) * multiplier) : 1
+      const shouldRemoveFromDeck =
+        !settings.allowRepeat && (!settings.noRepeatCorrectOnly || feedback === 'like')
+
+      setDrawnStudentIds((studentIds) => ({
+        ...studentIds,
+        [currentStudent.id]: shouldRemoveFromDeck
+      }))
+
+      await window.electron.ipcRenderer.invoke('rollcall:saveStudentState', {
+        classroomId,
+        studentId: currentStudent.id,
+        weight: nextWeight,
+        isDrawn: shouldRemoveFromDeck
+      })
+    }
     if (drawMode === 'magic' && currentStudent) {
       setMagicWeights((weights) => ({
         ...weights,
@@ -252,11 +294,13 @@ export default function RollcallPage({
     setCurrentRecordId(null)
   }
 
-  const handleResetRound = (): void => {
+  const handleResetRound = async (): Promise<void> => {
     clearRollTimers()
+    await window.electron.ipcRenderer.invoke('rollcall:resetStudentStates', classroomId)
     setIsRolling(false)
     setRollPhase('idle')
     setMagicWeights({})
+    setDrawnStudentIds({})
     setRecentStudents([])
     setShowFeedback(false)
     setCurrentStudent(null)
@@ -317,7 +361,7 @@ export default function RollcallPage({
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-[#FFF7E1]">待抽卡组</h2>
                 <span className="rounded-full bg-[#F8C85A]/15 px-3 py-1 text-xs font-semibold text-[#F8C85A]">
-                  {students.length} 张
+                  {availableStudents.length} 张
                 </span>
               </div>
 
@@ -342,8 +386,8 @@ export default function RollcallPage({
                   <div className="mt-1 text-2xl font-bold text-white">{students.length}</div>
                 </div>
                 <div className="rounded-md bg-white/10 p-3">
-                  <div className="text-xs font-medium text-[#AEEBDA]">记录</div>
-                  <div className="mt-1 text-2xl font-bold text-white">{recentStudents.length}</div>
+                  <div className="text-xs font-medium text-[#AEEBDA]">已移出</div>
+                  <div className="mt-1 text-2xl font-bold text-white">{drawnCount}</div>
                 </div>
               </div>
 
@@ -359,8 +403,8 @@ export default function RollcallPage({
               <Button
                 type="button"
                 variant="ghost"
-                onClick={handleResetRound}
-                disabled={(extraMagicCards === 0 && recentStudents.length === 0) || isRolling}
+                onClick={() => void handleResetRound()}
+                disabled={(extraMagicCards === 0 && drawnCount === 0) || isRolling}
                 className="mt-3 h-11 w-full rounded-md border border-white/15 bg-white/10 text-[#FFF7E1] hover:bg-white/15 hover:text-white"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -526,6 +570,11 @@ export default function RollcallPage({
                 暂无学生，请先在班级中添加学生。
               </div>
             )}
+            {!isEmpty && availableStudents.length === 0 && (
+              <div className="relative z-10 mt-4 rounded-md border border-[#F8C85A]/30 bg-[#FFF4D8]/95 px-5 py-3 text-center text-sm font-semibold text-[#173E42]">
+                当前牌堆已抽完，请重置牌堆后继续。
+              </div>
+            )}
           </section>
 
           <aside className="hidden min-h-0 flex-col justify-center gap-3 lg:flex">
@@ -610,8 +659,8 @@ export default function RollcallPage({
             <Button
               type="button"
               variant="ghost"
-              onClick={handleResetRound}
-              disabled={(extraMagicCards === 0 && recentStudents.length === 0) || isRolling}
+              onClick={() => void handleResetRound()}
+              disabled={(extraMagicCards === 0 && drawnCount === 0) || isRolling}
               className="h-12 rounded-md border border-white/15 bg-white/10 text-[#FFF7E1] hover:bg-white/15 hover:text-white"
             >
               <RotateCcw className="h-4 w-4" />
