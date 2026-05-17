@@ -59,6 +59,21 @@ export function initializeDatabase(): import("better-sqlite3").Database {
       )
     `).run();
 
+    // Create rollcall state table. This is separate from records so resetting a
+    // drawing round does not erase leaderboard/history data.
+    _db!.prepare(`
+      CREATE TABLE IF NOT EXISTS rollcall_student_states (
+        classroom_id INTEGER NOT NULL,
+        student_id INTEGER NOT NULL,
+        weight INTEGER NOT NULL DEFAULT 1,
+        is_drawn INTEGER NOT NULL DEFAULT 0,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (classroom_id, student_id),
+        FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE,
+        FOREIGN KEY (classroom_id) REFERENCES classrooms (id) ON DELETE CASCADE
+      )
+    `).run();
+
     // Create settings table
     _db!.prepare(`
       CREATE TABLE IF NOT EXISTS settings (

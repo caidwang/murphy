@@ -37,6 +37,67 @@ export function registerRollcallHandlers(rollcallService: RollcallService): void
     }
   );
 
+  ipcMain.handle('rollcall:getStudentStates', async (_event, classroomId: number) => {
+    if (typeof classroomId !== 'number') {
+      throw new Error('Invalid classroom ID provided.');
+    }
+    try {
+      return rollcallService.getStudentStates(classroomId);
+    } catch (error) {
+      console.error(`Failed to get rollcall states for classroom ${classroomId}:`, error);
+      throw new Error('Failed to get rollcall states.');
+    }
+  });
+
+  ipcMain.handle(
+    'rollcall:saveStudentState',
+    async (
+      _event,
+      state: { classroomId: number; studentId: number; weight: number; isDrawn: boolean }
+    ) => {
+      if (
+        !state ||
+        typeof state.classroomId !== 'number' ||
+        typeof state.studentId !== 'number' ||
+        typeof state.weight !== 'number' ||
+        typeof state.isDrawn !== 'boolean'
+      ) {
+        throw new Error('Invalid rollcall state provided.');
+      }
+      try {
+        rollcallService.saveStudentState(state);
+        return true;
+      } catch (error) {
+        console.error('Failed to save rollcall state:', error);
+        throw new Error('Failed to save rollcall state.');
+      }
+    }
+  );
+
+  ipcMain.handle('rollcall:resetStudentStates', async (_event, classroomId: number) => {
+    if (typeof classroomId !== 'number') {
+      throw new Error('Invalid classroom ID provided.');
+    }
+    try {
+      return rollcallService.resetStudentStates(classroomId);
+    } catch (error) {
+      console.error(`Failed to reset rollcall states for classroom ${classroomId}:`, error);
+      throw new Error('Failed to reset rollcall states.');
+    }
+  });
+
+  ipcMain.handle('rollcall:clearRecords', async (_event, classroomId: number) => {
+    if (typeof classroomId !== 'number') {
+      throw new Error('Invalid classroom ID provided.');
+    }
+    try {
+      return rollcallService.clearRecordsByClassroomId(classroomId);
+    } catch (error) {
+      console.error(`Failed to clear rollcall records for classroom ${classroomId}:`, error);
+      throw new Error('Failed to clear rollcall records.');
+    }
+  });
+
   // Handler for getting rollcall stats
   ipcMain.handle('rollcall:getStats', async (_event, classroomId: number) => {
     if (typeof classroomId !== 'number') {

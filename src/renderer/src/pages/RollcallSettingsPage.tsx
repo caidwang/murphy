@@ -2,22 +2,26 @@ import { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 
 interface Props {
+  classroomId: number;
   onNavigateBack: () => void;
 }
 
 interface RollcallSettings {
   allowRepeat: boolean;
+  noRepeatCorrectOnly: boolean;
   autoSave: boolean;
   scrollSpeed: 'slow' | 'medium' | 'fast';
 }
 
-export default function RollcallSettingsPage({ onNavigateBack }: Props) {
+export default function RollcallSettingsPage({ classroomId, onNavigateBack }: Props) {
   const [settings, setSettings] = useState<RollcallSettings>({
     allowRepeat: true,
+    noRepeatCorrectOnly: true,
     autoSave: true,
     scrollSpeed: 'medium',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -40,6 +44,22 @@ export default function RollcallSettingsPage({ onNavigateBack }: Props) {
       alert('保存设置失败');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleResetDrawState = async () => {
+    const confirmed = window.confirm('确认清空当前班级的抽签范围和加倍状态？排行榜数据不会被清空。');
+    if (!confirmed) return;
+
+    setIsResetting(true);
+    try {
+      await window.electron.ipcRenderer.invoke('rollcall:resetStudentStates', classroomId);
+      alert('抽签状态已重置');
+    } catch (error) {
+      console.error('Failed to reset rollcall state:', error);
+      alert('重置抽签状态失败');
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -86,6 +106,36 @@ export default function RollcallSettingsPage({ onNavigateBack }: Props) {
                   ></div>
                 </label>
               </div>
+
+              {!settings.allowRepeat && (
+                <div
+                  className="flex items-center justify-between py-4"
+                  style={{ borderBottom: '1px solid var(--border-color)' }}
+                >
+                  <div className="flex-1">
+                    <h3 className="font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                      仅答对后不放回
+                    </h3>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      开启后，答错的学生会被加倍并继续留在牌堆
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={settings.noRepeatCorrectOnly}
+                      onChange={(e) =>
+                        setSettings({ ...settings, noRepeatCorrectOnly: e.target.checked })
+                      }
+                    />
+                    <div
+                      className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
+                      style={{ background: 'var(--border-color)' }}
+                    ></div>
+                  </label>
+                </div>
+              )}
 
               {/* Auto Save Toggle */}
               <div
@@ -141,6 +191,23 @@ export default function RollcallSettingsPage({ onNavigateBack }: Props) {
                   <option value="fast">快速</option>
                 </select>
               </div>
+            </div>
+
+            <div className="mt-8 rounded-lg border border-[#F3C7B8] bg-[#FFF6F2] p-4">
+              <h3 className="font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                重置抽签状态
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                只清空哪些学生已移出牌堆和魔法加倍状态，不影响排行榜和历史点名记录。
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleResetDrawState}
+                disabled={isResetting}
+                className="border-[#D96D3D] text-[#9A3E1E] hover:bg-[#FFEDE6]"
+              >
+                {isResetting ? '重置中...' : '重置抽签状态'}
+              </Button>
             </div>
 
             <div className="mt-8 flex justify-end space-x-4">

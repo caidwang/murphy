@@ -1,16 +1,20 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron'
+import type { OpenDialogOptions } from 'electron'
 import { StudentService } from '../services/StudentService'
 import { StudentCreationData, StudentUpdateData } from '../repositories/StudentRepository'
 import { parseStudentsFromExcel } from '../services/ExcelStudentImportService'
 
 export function registerStudentHandlers(studentService: StudentService): void {
   ipcMain.handle('students:importFromExcel', async (event) => {
-    const ownerWindow = BrowserWindow.fromWebContents(event.sender) ?? undefined
-    const result = await dialog.showOpenDialog(ownerWindow, {
+    const ownerWindow = BrowserWindow.fromWebContents(event.sender)
+    const options: OpenDialogOptions = {
       title: '选择学生 Excel 文件',
       properties: ['openFile'],
       filters: [{ name: 'Excel 工作簿', extensions: ['xlsx'] }]
-    })
+    }
+    const result = ownerWindow
+      ? await dialog.showOpenDialog(ownerWindow, options)
+      : await dialog.showOpenDialog(options)
 
     if (result.canceled || result.filePaths.length === 0) {
       return { canceled: true }

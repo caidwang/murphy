@@ -72,8 +72,9 @@ function App(): React.JSX.Element {
           onNavigateBack={() => setCurrentPage('rollcall')}
         />
       )}
-      {currentPage === 'rollcall-settings' && (
+      {currentPage === 'rollcall-settings' && selectedClassId && (
         <RollcallSettingsPage
+          classroomId={selectedClassId}
           onNavigateBack={() => setCurrentPage('rollcall')}
         />
       )}
