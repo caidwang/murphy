@@ -16,6 +16,8 @@ import {
 import { Button } from '~/components/ui/button'
 import { RollcallFeedback } from '~/components/rollcall/RollcallFeedback'
 import { StudentAvatar } from '~/components/student/StudentAvatar'
+import beaverLike from '@renderer/assets/mascot/beaver-like.png'
+import beaverNo from '@renderer/assets/mascot/beaver-no.png'
 
 interface Props {
   classroomId: number
@@ -26,6 +28,7 @@ interface Props {
 
 type RollPhase = 'idle' | 'turning-back' | 'shuffling' | 'revealing'
 type DrawMode = 'classic' | 'magic'
+type MascotReaction = 'pass' | 'fail'
 
 export default function RollcallPage({
   classroomId,
@@ -44,6 +47,7 @@ export default function RollcallPage({
   const [magicWeights, setMagicWeights] = useState<Record<number, number>>({})
   const [drawnStudentIds, setDrawnStudentIds] = useState<Record<number, boolean>>({})
   const [recentStudents, setRecentStudents] = useState<Student[]>([])
+  const [mascotReaction, setMascotReaction] = useState<MascotReaction | null>(null)
   const [settings, setSettings] = useState({
     allowRepeat: true,
     noRepeatCorrectOnly: true,
@@ -54,6 +58,7 @@ export default function RollcallPage({
   const flipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const settleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mascotReactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const currentStudentRef = useRef<Student | null>(null)
 
   const getMagicWeight = useCallback(
@@ -91,6 +96,11 @@ export default function RollcallPage({
     if (settleTimeoutRef.current) {
       clearTimeout(settleTimeoutRef.current)
       settleTimeoutRef.current = null
+    }
+
+    if (mascotReactionTimeoutRef.current) {
+      clearTimeout(mascotReactionTimeoutRef.current)
+      mascotReactionTimeoutRef.current = null
     }
   }, [])
 
@@ -223,6 +233,7 @@ export default function RollcallPage({
     setIsRolling(true)
     setRollPhase('turning-back')
     setShowFeedback(false)
+    setMascotReaction(null)
     setCurrentRecordId(null)
 
     flipTimeoutRef.current = setTimeout(() => {
@@ -260,6 +271,21 @@ export default function RollcallPage({
     recordRollcall
   ])
 
+  const triggerMascotReaction = useCallback((reaction: MascotReaction): void => {
+    if (mascotReactionTimeoutRef.current) {
+      clearTimeout(mascotReactionTimeoutRef.current)
+    }
+
+    setMascotReaction(null)
+    requestAnimationFrame(() => {
+      setMascotReaction(reaction)
+      mascotReactionTimeoutRef.current = setTimeout(() => {
+        setMascotReaction(null)
+        mascotReactionTimeoutRef.current = null
+      }, 1800)
+    })
+  }, [])
+
   const handleFeedback = async (feedback: FeedbackType, multiplier = 1): Promise<void> => {
     if (currentRecordId) {
       await window.electron.ipcRenderer.invoke('rollcall:updateFeedback', currentRecordId, feedback)
@@ -288,6 +314,7 @@ export default function RollcallPage({
         [currentStudent.id]: Math.max(1, (weights[currentStudent.id] || 1) * multiplier)
       }))
     }
+    triggerMascotReaction(feedback === 'like' ? 'pass' : 'fail')
     setShowFeedback(false)
     setCurrentStudent(null)
     currentStudentRef.current = null
@@ -303,6 +330,7 @@ export default function RollcallPage({
     setDrawnStudentIds({})
     setRecentStudents([])
     setShowFeedback(false)
+    setMascotReaction(null)
     setCurrentStudent(null)
     currentStudentRef.current = null
     setCurrentRecordId(null)
@@ -312,6 +340,22 @@ export default function RollcallPage({
   const isCardBackVisible = rollPhase === 'turning-back' || rollPhase === 'shuffling'
   const isCardRevealing = rollPhase === 'revealing'
   const modeLabel = drawMode === 'magic' ? '魔法模式' : '经典放回'
+  const mascotReactionMeta =
+    mascotReaction === 'pass'
+      ? {
+          image: beaverLike,
+          alt: '海狸先生点赞',
+          title: '挑战成功',
+          tone: 'rollcall-mascot-pass'
+        }
+      : mascotReaction === 'fail'
+        ? {
+            image: beaverNo,
+            alt: '海狸先生否定',
+            title: '继续加油',
+            tone: 'rollcall-mascot-fail'
+          }
+        : null
 
   return (
     <div className="rollcall-magic-bg flex h-screen w-full overflow-hidden text-[#FFF7E1]">
@@ -669,6 +713,22 @@ export default function RollcallPage({
           </div>
         </div>
       </main>
+
+      {mascotReactionMeta && (
+        <div className={`rollcall-mascot-burst ${mascotReactionMeta.tone}`} aria-live="polite">
+          <div className="rollcall-mascot-card">
+            <div className="rollcall-mascot-glow" />
+            <div className="rollcall-mascot-copy">
+              <div className="rollcall-mascot-title">{mascotReactionMeta.title}</div>
+            </div>
+            <img
+              src={mascotReactionMeta.image}
+              alt={mascotReactionMeta.alt}
+              className="rollcall-mascot-image"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         {Array.from({ length: 18 }).map((_, index) => (
