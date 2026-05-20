@@ -407,6 +407,92 @@
     animation: rollcall-spark 3.8s ease-in-out infinite;
 }
 
+.rollcall-mascot-burst {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% 44%, rgba(255, 244, 216, 0.2), transparent 23rem),
+        rgba(3, 20, 24, 0.24);
+    animation: rollcall-mascot-backdrop 1.8s ease-out both;
+}
+
+.rollcall-mascot-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.25rem, 1vh, 0.75rem);
+    min-width: min(84vw, 640px);
+    min-height: min(68vh, 560px);
+    align-items: center;
+    justify-content: center;
+    padding-bottom: min(8vh, 5rem);
+    transform-origin: center bottom;
+}
+
+.rollcall-mascot-glow {
+    position: absolute;
+    width: min(72vw, 560px);
+    height: min(72vw, 560px);
+    border-radius: 9999px;
+    opacity: 0.72;
+    filter: blur(10px);
+}
+
+.rollcall-mascot-pass .rollcall-mascot-glow {
+    background:
+        radial-gradient(circle, rgba(248, 200, 90, 0.44), transparent 58%),
+        radial-gradient(circle, rgba(125, 226, 197, 0.3), transparent 68%);
+}
+
+.rollcall-mascot-fail .rollcall-mascot-glow {
+    background:
+        radial-gradient(circle, rgba(255, 113, 82, 0.36), transparent 58%),
+        radial-gradient(circle, rgba(248, 200, 90, 0.2), transparent 68%);
+}
+
+.rollcall-mascot-image {
+    position: relative;
+    z-index: 2;
+    width: min(42vw, 340px);
+    max-height: min(56vh, 450px);
+    object-fit: contain;
+    filter: drop-shadow(0 28px 44px rgba(0, 0, 0, 0.38));
+}
+
+.rollcall-mascot-pass .rollcall-mascot-image {
+    animation: rollcall-mascot-pass-pop 1.8s cubic-bezier(0.2, 0.92, 0.22, 1) both;
+}
+
+.rollcall-mascot-fail .rollcall-mascot-image {
+    animation: rollcall-mascot-fail-no 1.8s cubic-bezier(0.2, 0.92, 0.22, 1) both;
+}
+
+.rollcall-mascot-copy {
+    position: relative;
+    z-index: 3;
+    min-width: 11rem;
+    padding: 0.72rem 1.45rem;
+    border: 1px solid rgba(248, 200, 90, 0.5);
+    border-radius: 9999px;
+    background: rgba(9, 41, 46, 0.82);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.26);
+    text-align: center;
+    backdrop-filter: blur(12px);
+    animation: rollcall-mascot-copy 1.8s ease-out both;
+}
+
+.rollcall-mascot-title {
+    color: #fff7e1;
+    font-size: clamp(1.5rem, 3.4vw, 2.45rem);
+    font-weight: 900;
+    line-height: 1;
+}
+
 @keyframes rollcall-light-sweep {
     from {
         transform: translateX(-4%) rotate(0deg);
@@ -596,6 +682,84 @@
     }
 }
 
+@keyframes rollcall-mascot-backdrop {
+    0% {
+        opacity: 0;
+    }
+    14%, 82% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes rollcall-mascot-pass-pop {
+    0% {
+        transform: translateY(48px) scale(0.62) rotate(-7deg);
+        opacity: 0;
+    }
+    18% {
+        transform: translateY(-12px) scale(1.08) rotate(2deg);
+        opacity: 1;
+    }
+    34% {
+        transform: translateY(0) scale(1) rotate(0);
+        opacity: 1;
+    }
+    72% {
+        transform: translateY(0) scale(1.02) rotate(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-22px) scale(0.92) rotate(3deg);
+        opacity: 0;
+    }
+}
+
+@keyframes rollcall-mascot-fail-no {
+    0% {
+        transform: translateY(42px) scale(0.64);
+        opacity: 0;
+    }
+    16% {
+        transform: translateY(0) scale(1.04);
+        opacity: 1;
+    }
+    24% {
+        transform: translateX(-14px) scale(1);
+    }
+    32% {
+        transform: translateX(14px) scale(1);
+    }
+    40% {
+        transform: translateX(-8px) scale(1);
+    }
+    48%, 76% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-16px) scale(0.9);
+        opacity: 0;
+    }
+}
+
+@keyframes rollcall-mascot-copy {
+    0% {
+        transform: translateY(-12px) scale(0.9);
+        opacity: 0;
+    }
+    18%, 78% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10px) scale(0.96);
+        opacity: 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .rollcall-magic-bg::before,
     .rollcall-orbit-one,
@@ -610,6 +774,9 @@
     .rollcall-card-reveal,
     .rollcall-card-reveal-flip,
     .rollcall-magic-button::after,
+    .rollcall-mascot-burst,
+    .rollcall-mascot-copy,
+    .rollcall-mascot-image,
     .rollcall-spark {
         animation: none;
     }
